@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+require('dotenv').config();
+
 
 let mongoDBConnectionString = process.env.MONGO_URL;
 
@@ -34,16 +36,19 @@ module.exports.connect = function () {
 
 module.exports.registerUser = function (userData) {
     return new Promise(function (resolve, reject) {
+
         if (userData.password != userData.password2) {
             reject("Passwords do not match");
         } else {
+
             bcrypt.hash(userData.password, 10).then(hash => {
+
                 userData.password = hash;
 
                 let newUser = new User(userData);
 
                 newUser.save().then(() => {
-                    resolve("User " + userData.userName + " successfully registered");
+                    resolve("User " + userData.userName + " successfully registered");  
                 }).catch(err => {
                     if (err.code == 11000) {
                         reject("User Name already taken");
@@ -58,6 +63,7 @@ module.exports.registerUser = function (userData) {
 
 module.exports.checkUser = function (userData) {
     return new Promise(function (resolve, reject) {
+
         User.findOne({ userName: userData.userName })
             .exec()
             .then(user => {
@@ -74,32 +80,23 @@ module.exports.checkUser = function (userData) {
     });
 };
 
-module.exports.getUserById = function (id) {
-    return new Promise((resolve, reject) => {
-        User.findById(id)
-            .exec()
-            .then(user => {
-                if (user) resolve(user);
-                else reject("User not found");
-            })
-            .catch(err => reject(err));
-    });
-};
-
 module.exports.getFavourites = function (id) {
     return new Promise(function (resolve, reject) {
+
         User.findById(id)
             .exec()
             .then(user => {
-                resolve(user.favourites);
+                resolve(user.favourites)
             }).catch(err => {
                 reject(`Unable to get favourites for user with id: ${id}`);
             });
     });
-};
+}
 
 module.exports.addFavourite = function (id, favId) {
+
     return new Promise(function (resolve, reject) {
+
         User.findById(id).exec().then(user => {
             if (user.favourites.length < 50) {
                 User.findByIdAndUpdate(id,
@@ -111,9 +108,13 @@ module.exports.addFavourite = function (id, favId) {
             } else {
                 reject(`Unable to update favourites for user with id: ${id}`);
             }
-        });
+
+        })
+
     });
-};
+
+
+}
 
 module.exports.removeFavourite = function (id, favId) {
     return new Promise(function (resolve, reject) {
@@ -126,24 +127,27 @@ module.exports.removeFavourite = function (id, favId) {
             })
             .catch(err => {
                 reject(`Unable to update favourites for user with id: ${id}`);
-            });
+            })
     });
-};
+}
 
 module.exports.getHistory = function (id) {
     return new Promise(function (resolve, reject) {
+
         User.findById(id)
             .exec()
             .then(user => {
-                resolve(user.history);
+                resolve(user.history)
             }).catch(err => {
                 reject(`Unable to get history for user with id: ${id}`);
             });
     });
-};
+}
 
 module.exports.addHistory = function (id, historyId) {
+
     return new Promise(function (resolve, reject) {
+
         User.findById(id).exec().then(user => {
             if (user.favourites.length < 50) {
                 User.findByIdAndUpdate(id,
@@ -155,9 +159,9 @@ module.exports.addHistory = function (id, historyId) {
             } else {
                 reject(`Unable to update history for user with id: ${id}`);
             }
-        });
+        })
     });
-};
+}
 
 module.exports.removeHistory = function (id, historyId) {
     return new Promise(function (resolve, reject) {
@@ -170,6 +174,6 @@ module.exports.removeHistory = function (id, historyId) {
             })
             .catch(err => {
                 reject(`Unable to update history for user with id: ${id}`);
-            });
+            })
     });
-};
+}
